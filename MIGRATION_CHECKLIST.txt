@@ -1,0 +1,65 @@
+# Chord Visualizer II - Migration & Feature Checklist
+
+## Core Technical Components
+
+1. Circle of Fifths Visualization
+   - [ ] SVG-based, 24 keys, concentric circles, color-coded, interactive
+2. Multi-Instrument Fretboard System
+   - [ ] Guitar, Bass, Ukulele, Violin
+   - [ ] Tuning controls, note highlighting, chord building
+3. Advanced Music Theory Engine
+   - [ ] 11+ scale types, diatonic/secondary/extended chords, enharmonic logic
+4. Smart Chord Recognition System
+   - [ ] 40+ chord templates, interval analysis, root selection, slash chords
+5. Interactive Staff Notation System
+   - [ ] SVG staff, multi-row, measure selection, Roman numerals, beat indication
+6. Position-Based Fretboard Zoom
+   - [ ] 17 positions, opacity, highlight, arpeggio lines, animation
+7. Audio Synthesis Engine
+   - [ ] Native audio, multi-voice, metronome, count-in, mobile unlock
+8. Chord Progression Composer
+   - [ ] Staff integration, tempo, looping, visual beat, measure highlight, cadence suggestions, auto-advance, custom chord integration
+9. Custom Chord Builder
+   - [ ] Interactive, root selection, real-time analysis, progression integration
+
+## Key Data Structures
+- [ ] musicalKeys (24 keys, scale/chord data)
+- [ ] scaleFormulas (11+ types)
+- [ ] CHORD_TEMPLATES (40+ types)
+- [ ] instruments (4 types, tunings)
+
+## State Management
+- [ ] selectedKey, selectedScale, selectedInstrument, chordMode, customChordNotes, progressionMeasures, isPositionZoomed, audioContext, isPlaying, isMobileAudioUnlocked
+
+## Migration Priorities
+- [ ] Fretboard Grid System (FlatList/custom grid)
+- [ ] Audio Engine (native audio)
+- [ ] Circle of Fifths (SVG)
+- [ ] Touch Interactions (TouchableOpacity)
+- [ ] Staff Notation (SVG)
+- [ ] Position Zoom (ScrollView)
+- [ ] Chord Recognition (logic port)
+
+## Technical Challenges
+- [ ] CSS Grid → Flexbox
+- [ ] Web Audio API → native audio
+- [ ] SVG Animations (arpeggio lines)
+- [ ] Complex Positioning (Flexbox)
+- [ ] Font Loading (music notation)
+
+## Libraries
+- [ ] react-native-svg
+- [ ] @react-native-community/audio-toolkit
+- [ ] react-native-super-grid
+- [ ] react-native-gesture-handler
+- [ ] react-native-reanimated
+- [ ] expo-font
+
+## Outstanding Features (to implement next)
+- [ ] Staff Notation UI (multi-row, measure selection, Roman numerals, beat indication)
+- [ ] Metronome Audio (click track, count-in, tempo sync)
+- [ ] Chord Diagram/Voicing Modal (guitar, piano, ukulele, violin)
+- [ ] Progression Save/Load UI (naming, list, import/export)
+- [ ] Key Transposition UI (shift keys/progressions)
+- [ ] Fretboard Zoom & SVG Animations (arpeggio lines, transitions)
+- [ ] Font Loading for Notation (if needed)
