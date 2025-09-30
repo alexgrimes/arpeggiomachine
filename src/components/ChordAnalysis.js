@@ -5,12 +5,15 @@ import { analyzeChord, calculateScaleDegree } from '../utils/chordAnalysis';
 import { playChord, initializeAudio } from '../utils/audioEngine';
 
 const ChordAnalysis = () => {
-  const { 
-    customChordNotes, 
+  const {
+    customChordNotes,
     selectedKey,
     setSelectedChord,
     removeCustomChordNote,
-    clearCustomChordNotes
+    clearCustomChordNotes,
+    progressionActive,
+    selectedMeasureIndex,
+    addChordToMeasure
   } = useMusicStore();
 
   // Debug logging
@@ -36,6 +39,17 @@ const ChordAnalysis = () => {
     // Play the chord's actual notes
     if (chord.notes && chord.notes.length > 0) {
       await playChord(chord.notes, { duration: 1.5, arpeggiate: false });
+    }
+  };
+
+  // Assign chord to selected measure in progression mode
+  const handleAssignToMeasure = (chord) => {
+    if (progressionActive && selectedMeasureIndex !== null) {
+      addChordToMeasure(selectedMeasureIndex, {
+        symbol: chord.symbol,
+        romanNumeral: chord.romanNumeral || '?',
+        notes: chord.notes
+      });
     }
   };
 
@@ -87,34 +101,52 @@ const ChordAnalysis = () => {
       {/* Possible Chords Section */}
       <View style={styles.chordsSection}>
         <Text style={styles.sectionLabel}>Possible chords:</Text>
-        
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chordButtonsContainer}
         >
           {possibleChords && possibleChords.length > 0 ? (
             <>
               {/* Primary (green) button */}
-              <TouchableOpacity
-                style={[styles.chordButton, styles.primaryChordButton]}
-                onPress={() => handleChordSelect(possibleChords[0])}
-              >
-                <Text style={[styles.chordButtonText, styles.primaryChordButtonText]}>
-                  {possibleChords[0].symbol}
-                </Text>
-              </TouchableOpacity>
-              {/* Secondary chord suggestions */}
-              {possibleChords.slice(1).map((chord, idx) => (
+              <View style={{ flexDirection: 'column', alignItems: 'center' }}>
                 <TouchableOpacity
-                  key={idx + 1}
-                  style={styles.chordButton}
-                  onPress={() => handleChordSelect(chord)}
+                  style={[styles.chordButton, styles.primaryChordButton]}
+                  onPress={() => handleChordSelect(possibleChords[0])}
                 >
-                  <Text style={styles.chordButtonText}>
-                    {chord.symbol}
+                  <Text style={[styles.chordButtonText, styles.primaryChordButtonText]}>
+                    {possibleChords[0].symbol}
                   </Text>
                 </TouchableOpacity>
+                {progressionActive && selectedMeasureIndex !== null && (
+                  <TouchableOpacity
+                    style={styles.assignButton}
+                    onPress={() => handleAssignToMeasure(possibleChords[0])}
+                  >
+                    <Text style={styles.assignButtonText}>Assign to Measure</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              {/* Secondary chord suggestions */}
+              {possibleChords.slice(1).map((chord, idx) => (
+                <View key={idx + 1} style={{ flexDirection: 'column', alignItems: 'center' }}>
+                  <TouchableOpacity
+                    style={styles.chordButton}
+                    onPress={() => handleChordSelect(chord)}
+                  >
+                    <Text style={styles.chordButtonText}>
+                      {chord.symbol}
+                    </Text>
+                  </TouchableOpacity>
+                  {progressionActive && selectedMeasureIndex !== null && (
+                    <TouchableOpacity
+                      style={styles.assignButton}
+                      onPress={() => handleAssignToMeasure(chord)}
+                    >
+                      <Text style={styles.assignButtonText}>Assign to Measure</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               ))}
               <TouchableOpacity style={styles.clearButton} onPress={clearCustomChordNotes}>
                 <Text style={styles.clearButtonText}>Clear</Text>
@@ -144,6 +176,19 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  assignButton: {
+    backgroundColor: '#FFD600',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    marginTop: 4,
+    alignItems: 'center',
+  },
+  assignButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   // Note Header Styles
   noteHeader: {

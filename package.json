@@ -26,6 +26,7 @@
     "react-native-super-grid": "^6.0.2",
     "react-native-svg": "^15.12.1",
     "react-native-web": "^0.21.0",
+    "tone": "^15.1.22",
     "zustand": "^5.0.8"
   },
   "private": true

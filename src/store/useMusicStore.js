@@ -44,6 +44,20 @@ const SCALES = {
 };
 
 export const useMusicStore = create((set, get) => ({
+  // --- Interactive progression state ---
+  progressionMeasures: [],
+  selectedMeasureIndex: null,
+  progressionActive: false,
+
+  setProgressionMeasures: (measures) => set({ progressionMeasures: measures }),
+  setSelectedMeasureIndex: (index) => set({ selectedMeasureIndex: index }),
+  setProgressionActive: (active) => set({ progressionActive: active }),
+
+  addChordToMeasure: (measureIndex, chord) => set((state) => {
+    const newMeasures = [...state.progressionMeasures];
+    newMeasures[measureIndex] = chord;
+    return { progressionMeasures: newMeasures };
+  }),
   // Core musical state
   selectedKey: 'C',
   selectedScale: 'major',

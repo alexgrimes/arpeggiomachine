@@ -9,7 +9,7 @@ import ProgressionComposer from '../components/ProgressionComposer';
 import TuningControls from '../components/TuningControls';
 import ChordAnalysis from '../components/ChordAnalysis';
 import FretboardPositions from '../components/FretboardPositions';
-import Legend from '../components/Legend';
+
 
 // Debug imports - add this temporarily
 console.log('CircleOfFifths:', CircleOfFifths);
@@ -20,7 +20,7 @@ console.log('TuningControls:', TuningControls);
 console.log('ProgressionComposer:', ProgressionComposer);
 console.log('ChordAnalysis:', ChordAnalysis);
 console.log('FretboardPositions:', FretboardPositions);
-console.log('Legend:', Legend);
+
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -56,8 +56,7 @@ const HomeScreen = () => {
       <TuningControls />
       {/* 5. Chord Progression Composer */}
       <ProgressionComposer />
-      {/* 6. Legend */}
-      <Legend />
+  {/* 6. Legend removed */}
   {/* 7. Fretboard Positions component directly above Fretboard */}
   <FretboardPositions />
   <Fretboard />
@@ -92,7 +91,7 @@ const HomeScreen = () => {
       </View>
       {/* Full Width Bottom Section */}
       <View style={styles.fullWidthSection}>
-        <Legend />
+  {/* Legend removed */}
   {/* Fretboard Positions component directly above Fretboard */}
   <FretboardPositions />
   <Fretboard />

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { playProgression, stopProgression } from '../utils/audioEngine';
 import { useMusicStore } from '../store/useMusicStore';
 
 const ProgressionComposer = () => {
-  const { 
+  const {
     selectedKey,
     progressionKey,
     setProgressionKey,
@@ -14,7 +15,18 @@ const ProgressionComposer = () => {
     setProgressionMeasures,
     isPlaying,
     setIsPlaying,
+    selectedMeasureIndex,
+    setSelectedMeasureIndex
   } = useMusicStore();
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Progression state:', {
+      progressionActive,
+      progressionMeasures,
+      selectedMeasureIndex
+    });
+  }, [progressionActive, progressionMeasures, selectedMeasureIndex]);
 
   const [timeSignature, setTimeSignature] = useState('4/4');
   const [measureCount, setMeasureCount] = useState('4');
@@ -40,14 +52,15 @@ const ProgressionComposer = () => {
     console.log('Created progression:', { progressionKey, timeSignature, measureCount, tempo });
   };
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (isPlaying) {
+      stopProgression();
       setIsPlaying(false);
       console.log('Stopped playback');
     } else {
       setIsPlaying(true);
       console.log('Started playback');
-      // Implement playback logic
+      await playProgression(progressionMeasures, parseInt(tempo), loopEnabled);
     }
   };
 
@@ -175,8 +188,8 @@ const ProgressionComposer = () => {
       {progressionActive && (
         <View style={styles.cadenceSection}>
           <Text style={styles.cadenceTitle}>Suggested Cadences</Text>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.cadenceButtons}
           >

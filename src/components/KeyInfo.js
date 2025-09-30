@@ -1,6 +1,8 @@
+
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useMusicStore } from '../store/useMusicStore';
+import StaffNotation from './StaffNotation';
 import {
   generateScale,
   generateTriads,
@@ -11,8 +13,9 @@ import {
   SCALE_PATTERNS
 } from '../utils/musicTheory';
 
+
 const KeyInfo = () => {
-  const { selectedKey, selectedScale, setSelectedScale } = useMusicStore();
+  const { selectedKey, selectedScale, setSelectedScale, progressionActive } = useMusicStore();
   const [chordMode, setChordMode] = useState('triads');
   const [selectedChordIndex, setSelectedChordIndex] = useState(null);
 
@@ -164,6 +167,9 @@ const KeyInfo = () => {
           ))}
         </View>
 
+
+
+
         <Text style={styles.chordModeTitle}>{chordModeTitle}:</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chordScrollContent}>
@@ -192,6 +198,13 @@ const KeyInfo = () => {
             ))}
           </View>
         </ScrollView>
+
+        {/* Staff Notation - now below chord preset buttons */}
+        {progressionActive && (
+          <View style={styles.staffSection}>
+            <StaffNotation />
+          </View>
+        )}
       </ScrollView>
     );
   };
@@ -242,4 +255,17 @@ const KeyInfo = () => {
     noteText: { fontSize: 11, color: '#333' },
   });
 
+// Add staffSection style for StaffNotation
+// (rest of styles remain unchanged)
+// ...
+// Add this to styles:
+// staffSection: {
+//   marginTop: 10,
+//   marginBottom: 15,
+// },
+
+// If you want to match the provided style exactly, add:
+// staffSection: { marginTop: 10, marginBottom: 15 },
+
   export default KeyInfo;
+
