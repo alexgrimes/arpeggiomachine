@@ -8,7 +8,6 @@ import KeyInfo from '../components/KeyInfo';
 import ProgressionComposer from '../components/ProgressionComposer';
 import TuningControls from '../components/TuningControls';
 import ChordAnalysis from '../components/ChordAnalysis';
-import FretboardPositions from '../components/FretboardPositions';
 
 
 // Debug imports - add this temporarily
@@ -19,7 +18,6 @@ console.log('KeyInfo:', KeyInfo);
 console.log('TuningControls:', TuningControls);
 console.log('ProgressionComposer:', ProgressionComposer);
 console.log('ChordAnalysis:', ChordAnalysis);
-console.log('FretboardPositions:', FretboardPositions);
 
 
 const { width } = Dimensions.get('window');
@@ -57,8 +55,7 @@ const HomeScreen = () => {
       {/* 5. Chord Progression Composer */}
       <ProgressionComposer />
   {/* 6. Legend removed */}
-  {/* 7. Fretboard Positions component directly above Fretboard */}
-  <FretboardPositions />
+  {/* 7. Fretboard with integrated position controls */}
   <Fretboard />
   {/* 8. Chord Analysis */}
   <ChordAnalysis />
@@ -92,8 +89,7 @@ const HomeScreen = () => {
       {/* Full Width Bottom Section */}
       <View style={styles.fullWidthSection}>
   {/* Legend removed */}
-  {/* Fretboard Positions component directly above Fretboard */}
-  <FretboardPositions />
+  {/* Fretboard with integrated position controls */}
   <Fretboard />
   <ChordAnalysis />
       </View>

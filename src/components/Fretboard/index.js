@@ -20,9 +20,25 @@ const POSITIONS = {
 	'X': { frets: [10, 11, 12, 13, 14], label: 'X' },
 	'XI': { frets: [11, 12, 13, 14, 15], label: 'XI' },
 	'XII': { frets: [12, 13, 14, 15, 16], label: 'XII' },
+	'XIII': { frets: [13, 14, 15, 16, 17], label: 'XIII' },
+	'XIV': { frets: [14, 15, 16, 17, 18], label: 'XIV' },
+	'XV': { frets: [15, 16, 17, 18, 19], label: 'XV' },
+	'XVI': { frets: [16, 17, 18, 19, 20], label: 'XVI' },
+	'XVII': { frets: [17, 18, 19, 20, 21], label: 'XVII' },
+	'XVIII': { frets: [18, 19, 20, 21, 22], label: 'XVIII' },
 };
 
 const NOTES = ['C', 'C♯/D♭', 'D', 'D♯/E♭', 'E', 'F', 'F♯/G♭', 'G', 'G♯/A♭', 'A', 'A♯/B♭', 'B'];
+
+// Keys with sharps
+const SHARP_KEYS = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#', 'Em', 'Bm', 'F#m', 'C#m', 'G#m', 'D#m', 'A#m'];
+// Keys with flats
+const FLAT_KEYS = ['F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'Cb', 'Dm', 'Gm', 'Cm', 'Fm', 'Bbm', 'Ebm', 'Abm'];
+
+// Proper note names with sharps and flats
+const SHARP_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const FLAT_NOTES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
 const SCALE_PATTERNS = {
 	major: [0, 2, 4, 5, 7, 9, 11],
 	minor: [0, 2, 3, 5, 7, 8, 10],
@@ -49,19 +65,56 @@ const Fretboard = () => {
 	const [selectedPosition, setSelectedPosition] = useState(null);
 	const [showArpeggio, setShowArpeggio] = useState(true);
 	const zoomAnim = useRef(new Animated.Value(1)).current;
+	const scrollViewRef = useRef(null);
 
-	useEffect(() => {
-		Animated.spring(zoomAnim, {
-			toValue: selectedPosition ? 1.4 : 1,
-			useNativeDriver: true,
-			friction: 7,
-		}).start();
-	}, [selectedPosition]);
-
+	// Calculate dimensions first, before useEffect
 	const instrument = getCurrentInstrument();
 	const fretCount = 24;
-	const cellWidth = 33;
-	const cellHeight = 38;
+	const cellWidth = Math.max(33, Math.floor((width - 100) / 24)); // Make cellWidth dynamic based on screen width
+	const cellHeight = 48;
+
+	useEffect(() => {
+		if (selectedPosition) {
+			// Zoom animation
+			Animated.spring(zoomAnim, {
+				toValue: 1.2,
+				useNativeDriver: true,
+				tension: 40,
+				friction: 8,
+			}).start(() => {
+				// Center scroll AFTER zoom completes
+				if (scrollViewRef.current) {
+					const position = POSITIONS[selectedPosition];
+					const minFret = Math.min(...position.frets);
+					const maxFret = Math.max(...position.frets);
+					const centerFret = (minFret + maxFret) / 2;
+					
+					const screenWidth = width;
+					const zoomedFretWidth = cellWidth * 1.2;
+					
+					// Target: center of screen should be at center fret
+					const targetX = (centerFret * zoomedFretWidth) - (screenWidth / 2);
+					
+					setTimeout(() => {
+						scrollViewRef.current.scrollTo({ 
+							x: Math.max(0, targetX), 
+							animated: true 
+						});
+					}, 50);
+				}
+			});
+		} else {
+			// Reset zoom and scroll
+			if (scrollViewRef.current) {
+				scrollViewRef.current.scrollTo({ x: 0, animated: true });
+			}
+			
+			Animated.spring(zoomAnim, {
+				toValue: 1,
+				useNativeDriver: true,
+			}).start();
+		}
+	}, [selectedPosition, cellWidth, width]);
   
 	const noteToSemitone = (note) => {
 		const cleanNote = note.replace(/♯|♭/g, match => match === '♯' ? '#' : 'b');
@@ -88,7 +141,11 @@ const Fretboard = () => {
 		const openString = instrument.strings[stringIndex];
 		const openSemitone = noteToSemitone(openString);
 		const noteSemitone = (openSemitone + fret) % 12;
-		return NOTES[noteSemitone];
+		
+		// Use proper enharmonic spelling based on key signature
+		const useFlats = FLAT_KEYS.includes(selectedKey);
+		const noteArray = useFlats ? FLAT_NOTES : SHARP_NOTES;
+		return noteArray[noteSemitone];
 	};
 
 	const isNoteInScale = (stringIndex, fret) => {
@@ -120,7 +177,7 @@ const Fretboard = () => {
 		}
 	};
 
-	// Calculate fret opacity based on position
+	// Calculate fret opacity based on position - 3-tier system
 	const getFretOpacity = (fret) => {
 		if (!selectedPosition) return 1;
     
@@ -134,8 +191,11 @@ const Fretboard = () => {
 		} else if (fret >= minFret && fret <= maxFret) {
 			// Target position - full opacity
 			return 1;
+		} else if (fret >= minFret - 1 && fret <= maxFret + 1) {
+			// Context frets (±1 from target) - medium opacity
+			return 0.3;
 		} else {
-			// Far frets - very low opacity
+			// Distant frets - very low opacity
 			return 0.1;
 		}
 	};
@@ -150,12 +210,7 @@ const Fretboard = () => {
 	const getFretCellStyle = (fret) => {
 		const styles = [styleSheet.fretCell];
     
-		// Position highlighting
-		if (isPositionTarget(fret)) {
-			styles.push(styleSheet.positionTarget);
-		}
-    
-		// Traditional fret markers
+		// Traditional fret markers always visible
 		if (fret === 12) {
 			styles.push(styleSheet.fret12);
 		} else if (FRET_MARKERS.includes(fret)) {
@@ -190,11 +245,12 @@ const Fretboard = () => {
 		}
     
 		const noteText = note.split('/')[0];
-		const opacity = getFretOpacity(fret);
+		// Apply fret opacity to the note dot itself
+		const fretOpacity = getFretOpacity(fret);
     
 		return (
 			<TouchableOpacity
-				style={[dotStyle, { opacity }]}
+				style={[dotStyle, { opacity: fretOpacity }]}
 				onPress={() => handleNotePress(stringIndex, fret)}
 			>
 				<Text style={styleSheet.noteText}>{noteText}</Text>
@@ -214,7 +270,7 @@ const Fretboard = () => {
 		for (let fret = 1; fret <= fretCount; fret++) {
 			const opacity = getFretOpacity(fret);
 			cells.push(
-				<View key={`${stringIndex}-${fret}`} style={[getFretCellStyle(fret), { opacity }]}> 
+				<View key={`${stringIndex}-${fret}`} style={[getFretCellStyle(fret), { opacity, width: cellWidth }]}> 
 					<View style={styleSheet.stringLine} />
 					<View style={styleSheet.fretLine} />
 					{renderNoteDot(stringIndex, fret)}
@@ -277,7 +333,7 @@ const Fretboard = () => {
 			const opacity = getFretOpacity(fret);
       
 			markers.push(
-				<View key={`marker-${fret}`} style={[styleSheet.fretMarkerCell, { opacity }]}> 
+				<View key={`marker-${fret}`} style={[styleSheet.fretMarkerCell, { opacity, width: cellWidth }]}> 
 					{isMarker && (
 						<Text style={styleSheet.fretMarkerText}>
 							{fret === 12 ? '●●' : '●'}
@@ -291,7 +347,7 @@ const Fretboard = () => {
 	};
 
 	return (
-		<View style={styleSheet.container}>
+		<View style={[styleSheet.container, selectedPosition && styleSheet.containerZoomed]}>
 			<View style={styleSheet.header}>
 				<Text style={styleSheet.title}>
 					{instrument.name} - {selectedKey} {selectedScale}
@@ -301,15 +357,22 @@ const Fretboard = () => {
 			{renderPositionControls()}
 
 			<ScrollView 
+				ref={scrollViewRef}
 				horizontal 
 				showsHorizontalScrollIndicator={false}
 				style={styleSheet.fretboardScrollView}
-				contentContainerStyle={styleSheet.fretboardScrollContent}
+				contentContainerStyle={[
+					styleSheet.fretboardScrollContent,
+					selectedPosition && styleSheet.fretboardScrollContentZoomed
+				]}
 			>
 				<Animated.View style={[
 					styleSheet.fretboardContainer,
 					selectedPosition && styleSheet.fretboardZoomed,
-					{ transform: [{ scale: zoomAnim }] }
+					{ 
+						transform: [{ scale: zoomAnim }],
+						transformOrigin: 'left center',  // Zoom from left edge
+					}
 				]}>
 					{[...instrument.strings].map((_, stringIndex, arr) => renderStringRow(arr.length - 1 - stringIndex))}
 					{renderFretMarkers()}
@@ -347,6 +410,11 @@ const styleSheet = StyleSheet.create({
 		borderColor: '#ddd',
 		elevation: 3,
 		width: '100%',  // Full width
+		overflow: 'visible',  // Allow note dots to overflow
+	},
+	containerZoomed: {
+		paddingHorizontal: 20,  // Reduced padding for 1.2x zoom
+		paddingVertical: 25,
 	},
 	header: {
 		padding: 15,
@@ -361,14 +429,21 @@ const styleSheet = StyleSheet.create({
 	},
 	fretboardScrollView: {
 		width: '100%',  // Full width
+		overflow: 'visible',  // Allow content to overflow
 	},
 	fretboardScrollContent: {
-		paddingHorizontal: 0,  // Remove horizontal padding
+		paddingHorizontal: 80,  // Base padding to show nut/open strings and far edge
 		paddingVertical: 20,
+		alignItems: 'center',  // Center the fretboard content
+		justifyContent: 'center',
+	},
+	fretboardScrollContentZoomed: {
+		paddingHorizontal: 150,  // Extra padding when zoomed to prevent edge clipping
 	},
 	fretboardContainer: {
 		minWidth: '100%',  // Changed from fixed 1200px
 		width: '100%',
+		alignItems: 'center',  // Center rows within container
 	},
 	fretboardZoomed: {
 		backgroundColor: 'rgba(52, 152, 219, 0.08)',
@@ -443,12 +518,12 @@ const styleSheet = StyleSheet.create({
 	},
 	stringRow: {
 		flexDirection: 'row',
-		height: 38,
+		height: 48,
+		alignSelf: 'center',  // Center each row
 	},
 	fretCell: {
 		position: 'relative',
-		width: 33,
-		height: 38,
+		height: 48,
 		backgroundColor: 'white',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -456,7 +531,7 @@ const styleSheet = StyleSheet.create({
 		borderRightColor: '#ccc',
 	},
 	positionTarget: {
-		backgroundColor: 'rgba(52, 152, 219, 0.4)',
+		// No special background color - target frets blend with normal frets
 	},
 	fretPosition: {
 		backgroundColor: 'rgba(230, 230, 230, 0.75)',
@@ -466,7 +541,7 @@ const styleSheet = StyleSheet.create({
 	},
 	stringLabel: {
 		width: 60,
-		height: 38,
+		height: 48,
 		backgroundColor: '#e8e8e8',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -496,9 +571,9 @@ const styleSheet = StyleSheet.create({
 		backgroundColor: '#ccc',
 	},
 	noteDot: {
-		width: 28,
-		height: 28,
-		borderRadius: 14,
+		width: 34,
+		height: 34,
+		borderRadius: 17,
 		alignItems: 'center',
 		justifyContent: 'center',
 		position: 'absolute',
@@ -510,8 +585,8 @@ const styleSheet = StyleSheet.create({
 		borderColor: '#e55a2b',
 	},
 	scaleNote: {
-		backgroundColor: '#B3D9FF',
-		borderColor: '#90C4E8',
+		backgroundColor: '#A8D0F0',
+		borderColor: '#85B8DD',
 	},
 	chordNote: {
 		backgroundColor: '#0D47A1',
@@ -539,7 +614,6 @@ const styleSheet = StyleSheet.create({
 		width: 60,
 	},
 	fretMarkerCell: {
-		width: 33,
 		height: 25,
 		alignItems: 'center',
 		justifyContent: 'center',
